@@ -12,6 +12,14 @@ Options:
     --group=<id>        Group ID (default is random)
 ```
 
+## Notes
+
+This is intended as example code to be built on rather than a fully production
+grade service. For example, it does not consider error handling or logging.
+
+You probably want to start by replacing `handle_alert` with your own version
+that does something more useful than simply writing it to an ever-growing file.
+
 ## Installation
 
 ### As a Systemd service

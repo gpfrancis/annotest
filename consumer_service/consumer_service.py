@@ -15,7 +15,7 @@ from docopt import docopt
 from confluent_kafka import Consumer
 import signal
 from threading import Event
-from uuit import uuid4
+from uuid import uuid4
 
 # Configuration
 batch_size = 10

@@ -1,0 +1,45 @@
+---
+
+- hosts: localhost
+  become: true
+  vars:
+    out: out_file.txt
+    group: my_group_id
+    topic: my_topic
+  tasks:
+    - name: Create working directory
+      ansible.builtin.file:
+        path: /opt/consumer_service
+        state: directory
+        mode: '0700'
+        owner: "{{ ansible_user_id }}"
+    - name: Copy script
+      ansible.builtin.copy:
+        src: consumer_service.py
+        dest: /opt/consumer_service/consumer_service.py
+        owner: "{{ ansible_user_id }}"
+        mode: '0600'
+    - name: "Install packages"
+      apt:
+        pkg:
+          - python3-pip
+          - python3-venv
+        state: present
+        update-cache: true
+    - name: "Setup python env"
+      pip:
+        virtualenv: /opt/consumer_service/venv
+        virtualenv_site_packages: true
+        virtualenv_command: 'python3 -m venv'
+        name:
+          - confluent-kafka
+          - docopt
+    - name: Create systemd service file
+      template:
+        src: service.j2
+        dest: /etc/systemd/system/lasair-consumer.service
+    - name: Make sure a service unit is running
+      ansible.builtin.systemd:
+        state: started
+        enabled: true
+        name: lasair-consumer

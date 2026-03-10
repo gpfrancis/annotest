@@ -15,5 +15,14 @@ Options:
 ## Installation
 
 ### As a Systemd service
+The file `service.yaml` is an Ansible playbook that will install the consumer service as a systemd daemon
+on the local machine. 
+
+Edit it to change the default values for various configuration parameters as required.
+You will at least need to set the variables `group` and `topic`. Then
+run the command:
+```
+ansible-playbook service.yaml
+```
 
 ### As a Docker container

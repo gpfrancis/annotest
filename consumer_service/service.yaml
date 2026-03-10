@@ -3,7 +3,7 @@
 - hosts: localhost
   become: true
   vars:
-    out: out_file.txt
+    out: out.txt
     group: my_group_id
     topic: my_topic
   tasks:

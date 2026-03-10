@@ -39,7 +39,6 @@ class ConsumerService:
             'group.id': group,
             'enable.auto.commit': False,
         }
-        print(consumer_conf)
         self.consumer = Consumer(consumer_conf)
         self.consumer.subscribe([topic])
         print(f"Reading topic {topic} from {broker}")

@@ -45,8 +45,9 @@ class ConsumerService:
         self.out = open(filename, "a")
         print(f"Appending output to {filename}")
 
-    def handle_alert(self, alert):
-        self.out.write(alert.decode('utf-8') + '\n')
+    def handle_alerts(self, alerts):
+        for alert in alerts:
+            self.out.write(alert.decode('utf-8') + '\n')
 
     def run(self):
         while not stop.is_set():
@@ -68,8 +69,7 @@ class ConsumerService:
             print(f'Got {nalert} alerts')
             if nalert > 0:
                 # handle a batch of alerts
-                for alert in alerts:
-                    self.handle_alert(alert)
+                self.handle_alerts(alerts)
                 # commit offsets
                 self.consumer.commit()
             else:

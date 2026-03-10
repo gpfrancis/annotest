@@ -17,8 +17,14 @@ Options:
 This is intended as example code to be built on rather than a fully production
 grade service. For example, it does not consider error handling or logging.
 
-You probably want to start by replacing `handle_alert` with your own version
+You probably want to start by replacing `handle_alerts` with your own version
 that does something more useful than simply writing it to an ever-growing file.
+
+We deal with the alerts in small batches here rather than singly because
+that's a common pattern and, depending on what you're doing with the alerts, might
+be quite a lot more efficient. For a case as simple as this it doesn't really
+make sense and you could simlify the code somewhat and process the alerts one at a
+time if you wanted to.
 
 ## Installation
 

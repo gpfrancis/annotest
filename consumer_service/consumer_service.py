@@ -2,9 +2,10 @@
 A simple Kafka consumer designed to be run continuously, e.g. as a service.
 Reads from a specified topic and appends to an output file.
 Usage:
-    consumer_service.py --topic=<topic> [--broker=<broker>] [--group=<id>]
+    consumer_service.py --out=<file> --topic=<topic> [--broker=<broker>] [--group=<id>]
 
 Options:
+    --out=<file>        File to append output to
     --topic=<topic>     Kafka topic to read from
     --broker=<broker>   Kafka broker (default is lasair public kafka)
     --group=<id>        Group ID (default is random)
@@ -12,13 +13,12 @@ Options:
 
 from docopt import docopt
 from confluent_kafka import Consumer
-from time import sleep
 import signal
 from threading import Event
-import uuid
+from uuit import uuid4
 
 # Configuration
-batch_size = 2
+batch_size = 10
 
 stop = Event()
 
@@ -30,7 +30,7 @@ def stop_handler(signum, _frame):
 
 class ConsumerService:
 
-    def __init__(self, broker, topic, group):
+    def __init__(self, filename, broker, topic, group):
         self.consumer = None
         consumer_conf = {
             'bootstrap.servers': broker,
@@ -43,6 +43,11 @@ class ConsumerService:
         self.consumer = Consumer(consumer_conf)
         self.consumer.subscribe([topic])
         print(f"Reading topic {topic} from {broker}")
+        self.out = open(filename, "a")
+        print(f"Appending output to {filename}")
+
+    def handle_alert(self, alert):
+        self.out.write(alert.decode('utf-8') + '\n')
 
     def run(self):
         while not stop.is_set():
@@ -52,7 +57,7 @@ class ConsumerService:
             while nalert < batch_size:
                 if stop.is_set():
                     break
-                msg = self.consumer.poll(timeout=5)
+                msg = self.consumer.poll(timeout=2)
                 if msg is None:
                     # no messages available
                     break
@@ -63,17 +68,17 @@ class ConsumerService:
                 nalert += 1
             print(f'Got {nalert} alerts')
             if nalert > 0:
-                print('---- Alert batch ----')
+                # handle a batch of alerts
                 for alert in alerts:
-                    print(alert)
-                print('---- end of batch ----')
+                    self.handle_alert(alert)
                 # commit offsets
                 self.consumer.commit()
             else:
                 stop.wait(10)
-        # clean up - commit offsets and close the consumer
+        # clean up
         self.consumer.commit()
         self.consumer.close()
+        self.out.close()
 
 
 if __name__ == '__main__':
@@ -82,7 +87,8 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, stop_handler)
     signal.signal(signal.SIGHUP, stop_handler)
     cs = ConsumerService(
+        args['--out'],
         args.get('--broker') or 'lasair-lsst-kafka_pub.lsst.ac.uk:9092',
         args['--topic'],
-        args.get('--group') or str(uuid.uuid4()))
+        args.get('--group') or str(uuid4()))
     cs.run()
